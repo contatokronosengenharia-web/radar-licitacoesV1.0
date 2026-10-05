@@ -15,6 +15,13 @@
       "when": 1791225400818,
       "tag": "0001_schema_inicial",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791227751542,
+      "tag": "0002_relatorios",
+      "breakpoints": true
     }
   ]
 }

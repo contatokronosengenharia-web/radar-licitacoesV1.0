@@ -7,6 +7,7 @@ import { logAuditoria } from "@/db/schema";
 import { executarFila } from "@/fila/manipuladores";
 import { exigirAdmin } from "@/lib/contexto";
 import { sincronizarDominios } from "@/pncp/dominios";
+import { gerarRelatoriosDevidos } from "@/relatorios/gerar";
 
 export type EstadoAdmin = { mensagem: string; erro?: boolean } | undefined;
 
@@ -43,4 +44,12 @@ export async function acaoProcessarFila(): Promise<EstadoAdmin> {
   const r = await executarFila(db, 45_000);
   revalidatePath("/admin");
   return { mensagem: `${r.executadas} tarefas executadas, ${r.falhas} falhas, em ${Math.round(r.duracaoMs / 1000)} s.` };
+}
+
+export async function acaoGerarRelatorios(): Promise<EstadoAdmin> {
+  const admin = await exigirAdmin();
+  const r = await gerarRelatoriosDevidos(db, new Date(), 45_000);
+  await registrar(admin.id, "admin.gerar_relatorios", r);
+  revalidatePath("/admin");
+  return { mensagem: `${r.gerados} relatórios gerados (${r.oportunidades} oportunidades), ${r.falhas} falhas.`, erro: r.falhas > 0 };
 }

@@ -16,6 +16,7 @@ export default async function LayoutPainel({ children }: { children: React.React
           <Link href="/painel" className="font-bold text-blue-800">Radar de Licitações</Link>
           <nav className="flex gap-4 text-sm">
             <Link href="/painel" className="hover:underline">Oportunidades</Link>
+            <Link href="/painel/relatorios" className="hover:underline">Relatórios</Link>
             <Link href="/painel/filtros" className="hover:underline">Filtros</Link>
             <Link href="/painel/configuracoes" className="hover:underline">Configurações</Link>
             {admin && <Link href="/admin" className="hover:underline">Administração</Link>}

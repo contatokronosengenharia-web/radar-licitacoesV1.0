@@ -1,53 +1,7 @@
 // Estruturas previstas na arquitetura e ainda NÃO usadas pelo MVP:
-// relatórios/entregas (WhatsApp) e planos/assinaturas (cobrança).
-import {
-  bigint,
-  bigserial,
-  index,
-  integer,
-  pgTable,
-  text,
-  timestamp,
-  uniqueIndex,
-  uuid,
-} from "drizzle-orm/pg-core";
+// contatos para WhatsApp e planos/assinaturas (cobrança).
+import { bigserial, index, integer, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { empresa } from "./contas";
-
-export const relatorio = pgTable(
-  "relatorio",
-  {
-    id: bigserial("id", { mode: "number" }).primaryKey(),
-    empresaId: uuid("empresa_id")
-      .notNull()
-      .references(() => empresa.id, { onDelete: "cascade" }),
-    periodoInicio: timestamp("periodo_inicio", { withTimezone: true }),
-    periodoFim: timestamp("periodo_fim", { withTimezone: true }).notNull(),
-    total: integer("total").notNull().default(0),
-    geradoEm: timestamp("gerado_em", { withTimezone: true }).notNull().defaultNow(),
-  },
-  (t) => [uniqueIndex("relatorio_empresa_periodo_uk").on(t.empresaId, t.periodoFim)],
-);
-
-export const entrega = pgTable(
-  "entrega",
-  {
-    id: bigserial("id", { mode: "number" }).primaryKey(),
-    relatorioId: bigint("relatorio_id", { mode: "number" })
-      .notNull()
-      .references(() => relatorio.id, { onDelete: "cascade" }),
-    canal: text("canal", { enum: ["painel", "whatsapp", "email"] }).notNull(),
-    destino: text("destino"),
-    situacao: text("situacao", { enum: ["pendente", "enviada", "entregue", "lida", "falhou"] })
-      .notNull()
-      .default("pendente"),
-    tentativas: integer("tentativas").notNull().default(0),
-    provedorMensagemId: text("provedor_mensagem_id"),
-    erro: text("erro"),
-    criadoEm: timestamp("criado_em", { withTimezone: true }).notNull().defaultNow(),
-    enviadoEm: timestamp("enviado_em", { withTimezone: true }),
-  },
-  (t) => [index("entrega_relatorio_idx").on(t.relatorioId)],
-);
 
 export const canalContato = pgTable("canal_contato", {
   id: bigserial("id", { mode: "number" }).primaryKey(),

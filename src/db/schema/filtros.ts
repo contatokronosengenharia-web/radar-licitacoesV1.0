@@ -68,11 +68,16 @@ export const oportunidade = pgTable(
     encontradaEm: timestamp("encontrada_em", { withTimezone: true }).notNull().defaultNow(),
     // Preenchido uma única vez, quando a oportunidade entra num relatório.
     relatorioId: bigint("relatorio_id", { mode: "number" }),
+    // Preenchido quando, na hora do relatório, ela já não atendia aos filtros ativos
+    // (filtro alterado, prazo encerrado, contratação revogada, descartada pelo usuário).
+    excluidaRelatorioEm: timestamp("excluida_relatorio_em", { withTimezone: true }),
     marcacao: text("marcacao", { enum: ["interessante", "descartada"] }),
   },
   (t) => [
     uniqueIndex("oportunidade_empresa_contratacao_uk").on(t.empresaId, t.contratacaoId),
-    index("oportunidade_sem_relatorio_idx").on(t.empresaId).where(sql`${t.relatorioId} is null`),
+    index("oportunidade_sem_relatorio_idx")
+      .on(t.empresaId)
+      .where(sql`${t.relatorioId} is null and ${t.excluidaRelatorioEm} is null`),
     index("oportunidade_empresa_data_idx").on(t.empresaId, t.encontradaEm),
   ],
 );

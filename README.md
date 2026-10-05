@@ -46,6 +46,7 @@ Os agendamentos ficam em `vercel.json`. Toda rota exige o cabeçalho `Authorizat
 | `/api/cron/processar-fila` | a cada minuto | busca as páginas, grava com deduplicação e roda o motor |
 | `/api/cron/coletar-atualizacoes` | 1x/dia | revisa as contratações alteradas (revogações, novos prazos) |
 | `/api/cron/sincronizar-dominios` | 1x/dia | atualiza as tabelas oficiais do PNCP |
+| `/api/cron/gerar-relatorios` | a cada minuto | gera o relatório das empresas cujo horário chegou |
 
 Para testar manualmente:
 
@@ -61,7 +62,25 @@ curl -H "Authorization: Bearer $CRON_SECRET" http://localhost:3000/api/cron/cole
 2. Na Vercel (plano Pro), importe o repositório e cadastre as variáveis do `.env.example`. Use a URL pública como `BETTER_AUTH_URL`.
 3. Rode `npm run db:migrate` apontando para o Neon. Depois chame uma vez a rota `sincronizar-dominios`.
 
+## Relatórios
+
+Cada empresa escolhe hora e fuso em Configurações. O horário seguinte fica gravado em UTC em `empresa.proximo_relatorio_em`; o cron só procura empresas com esse horário vencido.
+
+Na geração (`src/relatorios/gerar.ts`), nada é consultado no PNCP:
+
+1. Pega as oportunidades da empresa que ainda não entraram em nenhum relatório.
+2. Reaplica os filtros ativos naquele momento. O que deixou de atender (filtro alterado, prazo encerrado, revogada, descartada pelo usuário) fica marcado como excluído e não volta.
+3. Grava `relatorio`, os itens em `relatorio_item` (com um retrato do conteúdo) e uma `entrega` no canal painel.
+4. Agenda o próximo horário.
+
+Garantias:
+- Um relatório por empresa e horário (índice único em `empresa_id, agendado_para`).
+- Uma oportunidade em no máximo um relatório (índice único em `relatorio_item.oportunidade_id`).
+- Se o sistema ficar parado, sai um único relatório com tudo e o próximo vai para o horário futuro seguinte.
+
+O histórico fica em /painel/relatorios.
+
 ## Ainda não implementado
 
-- Envio do relatório no horário da empresa: o próximo passo. A tabela `relatorio` e o campo `empresa.proximo_relatorio_em` já existem.
 - WhatsApp, pagamentos, assinatura, cobrança e planos pagos. As tabelas existem só como estrutura preparada.
+  Para o WhatsApp, a ideia é criar uma `entrega` com canal `whatsapp` e situação `pendente` para cada relatório e enviar o texto de `montarTextoRelatorio` (`src/relatorios/mensagem.ts`).

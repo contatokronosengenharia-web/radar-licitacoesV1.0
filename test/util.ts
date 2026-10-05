@@ -4,7 +4,8 @@ import { db } from "@/db";
 export async function limparBanco() {
   await db.execute(sql`truncate table oportunidade_perfil, oportunidade, perfil_filtro_versao, perfil_filtro,
     empresa_usuario, empresa, tarefa, coleta_execucao, coleta_controle, contratacao, orgao, unidade_orgao,
-    municipio, dominio, sessao, conta, verificacao, usuario, log_auditoria restart identity cascade`);
+    municipio, dominio, sessao, conta, verificacao, usuario, log_auditoria, relatorio_item, entrega, relatorio
+    restart identity cascade`);
 }
 
 type Resposta = { status: number; corpo?: unknown };

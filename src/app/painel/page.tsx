@@ -3,6 +3,7 @@ import { sql } from "drizzle-orm";
 import { db } from "@/db";
 import { marcarOportunidade } from "@/app/painel/acoes";
 import { exigirEmpresa } from "@/lib/contexto";
+import { linkPncp } from "@/pncp/links";
 
 const POR_PAGINA = 25;
 
@@ -114,7 +115,7 @@ export default async function Oportunidades(props: PageProps<"/painel">) {
               <div className="flex flex-wrap items-center gap-2 pt-1">
                 <a
                   className="text-sm text-blue-700 underline"
-                  href={`https://pncp.gov.br/app/editais/${l.orgao_cnpj}/${l.ano_compra}/${l.sequencial_compra}`}
+                  href={linkPncp(l.orgao_cnpj, l.ano_compra, l.sequencial_compra)}
                   target="_blank"
                   rel="noreferrer"
                 >

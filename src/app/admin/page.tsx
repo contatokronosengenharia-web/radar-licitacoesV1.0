@@ -3,7 +3,7 @@ import { desc, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { coletaControle, coletaExecucao } from "@/db/schema";
 import { exigirAdmin } from "@/lib/contexto";
-import { acaoIniciarColeta, acaoProcessarFila, acaoSincronizarDominios } from "./acoes";
+import { acaoGerarRelatorios, acaoIniciarColeta, acaoProcessarFila, acaoSincronizarDominios } from "./acoes";
 import { BotaoAdmin } from "./BotaoAdmin";
 
 const fmt = (d: Date | string | null | undefined) =>
@@ -24,11 +24,12 @@ export default async function Admin() {
       order by id desc limit 10`),
     db.execute<{ tipo: string; codigo: string; nome: string; sincronizado_em: string }>(sql`
       select tipo, codigo, nome, to_json(sincronizado_em) #>> '{}' as sincronizado_em from dominio where origem = 'descoberto' order by tipo, codigo`),
-    db.execute<{ empresas: number; contratacoes: number; pendentes_motor: number; oportunidades: number; dominios: number }>(sql`
+    db.execute<{ empresas: number; contratacoes: number; pendentes_motor: number; oportunidades: number; relatorios: number; dominios: number }>(sql`
       select (select count(*) from empresa)::int as empresas,
              (select count(*) from contratacao)::int as contratacoes,
              (select count(*) from contratacao where motor_processado_em is null)::int as pendentes_motor,
              (select count(*) from oportunidade)::int as oportunidades,
+             (select count(*) from relatorio)::int as relatorios,
              (select count(*) from dominio)::int as dominios`),
   ]);
   const t = totais.rows[0];
@@ -40,12 +41,13 @@ export default async function Admin() {
         <Link href="/painel" className="text-sm text-blue-700 underline">Voltar ao painel</Link>
       </div>
 
-      <section className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+      <section className="grid grid-cols-2 gap-3 sm:grid-cols-6">
         {[
           ["Empresas", t.empresas],
           ["Contratações", t.contratacoes],
           ["Aguardando motor", t.pendentes_motor],
           ["Oportunidades", t.oportunidades],
+          ["Relatórios", t.relatorios],
           ["Códigos de domínio", t.dominios],
         ].map(([rotulo, valor]) => (
           <div key={rotulo} className="cartao">
@@ -60,6 +62,7 @@ export default async function Admin() {
         <BotaoAdmin acao={acaoIniciarColeta} rotulo="Iniciar coleta de publicações" campos={{ tipo: "publicacao" }} />
         <BotaoAdmin acao={acaoIniciarColeta} rotulo="Iniciar coleta de atualizações" campos={{ tipo: "atualizacao" }} />
         <BotaoAdmin acao={acaoProcessarFila} rotulo="Processar fila agora" />
+        <BotaoAdmin acao={acaoGerarRelatorios} rotulo="Gerar relatórios devidos agora" />
       </section>
 
       <section>
