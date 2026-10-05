@@ -1,0 +1,10 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "crons": [
+    { "path": "/api/cron/sincronizar-dominios", "schedule": "10 6 * * *" },
+    { "path": "/api/cron/coletar", "schedule": "0 * * * *" },
+    { "path": "/api/cron/coletar-atualizacoes", "schedule": "30 7 * * *" },
+    { "path": "/api/cron/processar-fila", "schedule": "* * * * *" },
+    { "path": "/api/cron/gerar-relatorios", "schedule": "* * * * *" }
+  ]
+}
